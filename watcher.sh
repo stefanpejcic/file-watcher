@@ -3,6 +3,7 @@
 # Directories to watch
 NGINX_CONF_DIR="/etc/nginx/sites-available"
 DNS_ZONES_DIR="/etc/bind/zones"
+SYSTEMD_DIR="/etc/systemd/system"
 
 # Function to check if inotifywait is installed and install it if necessary
 check_and_install_inotifywait() {
@@ -47,6 +48,19 @@ reload_dns() {
   fi
 }
 
+
+# Function to handle systemd reload
+reload_systemd() {
+  echo "$(date): Detected change in $SYSTEMD_DIR"
+  echo "$(date): Running: systemctl daemon-reload"
+  systemctl daemon-reload
+  if [ $? -ne 0 ]; then
+    echo "$(date): systemctl daemon-reload failed"
+  fi
+}
+
+
+
 # Check and install inotifywait if necessary
 check_and_install_inotifywait
 
@@ -63,6 +77,8 @@ while true; do
       reload_nginx
     elif [[ "$FILE" == "$DNS_ZONES_DIR"*.zone ]]; then
       reload_dns "$FILE"
+    elif [[ "$FILE" == "$SYSTEMD_DIR"* ]]; then
+      reload_systemd
     fi
   done
 done
