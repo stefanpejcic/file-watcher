@@ -1,5 +1,5 @@
 # file-watcher
-Auto-reload services when changes are detected in BIND or Nginx configuration files
+Auto-reload services when changes are detected in configuration files
 
 
 - **nginx** - when change is detected in `/etc/nginx/sites-available`, run [`nginx -t`](https://www.oreilly.com/library/view/nginx-troubleshooting/9781785288654/ch01s02.html) and [`nginx -s reload`](https://nginx.org/en/docs/beginners_guide.html#control)
