@@ -99,10 +99,11 @@ while true; do
       reload_dns "$FILE"
     elif [[ "$FILE" == "$SYSTEMD_DIR"* ]]; then
       reload_systemd
-    elif [[ "$FILE" == "$WATCHER_DIR"* ]]; then
-      reload_watcher
+    # openadmin must be before watcher, since watcher is in subdirectory of openadmin
     elif [[ "$FILE" == "$OPENADMIN_DIR"* ]]; then
       reload_openadmin
+    elif [[ "$FILE" == "$WATCHER_DIR"* ]]; then
+      reload_watcher
     fi
   done
 done
