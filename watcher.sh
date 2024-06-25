@@ -34,8 +34,17 @@ reload_dns() {
   local zone_file="$1"
   local zone_name="$(basename "$zone_file" .zone)"
   echo "$(date): Detected DNS Zone Change in $zone_file"
-  echo "$(date): Executing: rndc reload $zone_name"
-  rndc reload "$zone_name"
+  echo "$(date): Checking DNS configuration for $zone_name"
+
+  named-checkzone "$zone_name" "$zone_file"
+  if [ $? -eq 0 ]; then
+    echo "$(date): DNS configuration test passed for $zone_name"
+    echo "$(date): Reloading DNS zone $zone_name"
+    rndc reload "$zone_name"
+  else
+    echo "$(date): DNS configuration test failed for $zone_name"
+    echo "$(date): Not reloading DNS zone $zone_name"
+  fi
 }
 
 # Check and install inotifywait if necessary
