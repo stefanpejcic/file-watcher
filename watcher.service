@@ -5,7 +5,7 @@ After=network.target
 [Service]
 User=root
 Group=root
-ExecStart=/usr/local/admin/scripts/watcher
+ExecStart=/usr/local/admin/scripts/watcher.sh
 Restart=always
 RestartSec=3
 
