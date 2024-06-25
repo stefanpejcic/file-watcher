@@ -4,6 +4,8 @@
 NGINX_CONF_DIR="/etc/nginx/sites-available"
 DNS_ZONES_DIR="/etc/bind/zones"
 SYSTEMD_DIR="/etc/systemd/system"
+OPENADMIN_DIR="/usr/local/admin"
+WATCHER_DIR="/usr/local/admin/scripts/watcher"
 
 # Function to check if inotifywait is installed and install it if necessary
 check_and_install_inotifywait() {
@@ -18,7 +20,7 @@ check_and_install_inotifywait() {
   fi
 }
 
-# Function to reload Nginx
+# Nginx
 reload_nginx() {
   nginx -t
   if [ $? -eq 0 ]; then
@@ -30,7 +32,7 @@ reload_nginx() {
   fi
 }
 
-# Function to reload a DNS zone
+# Named
 reload_dns() {
   local zone_file="$1"
   local zone_name="$(basename "$zone_file" .zone)"
@@ -49,7 +51,7 @@ reload_dns() {
 }
 
 
-# Function to handle systemd reload
+# systemd
 reload_systemd() {
   echo "$(date): Detected change in $SYSTEMD_DIR"
   echo "$(date): Running: systemctl daemon-reload"
@@ -59,7 +61,25 @@ reload_systemd() {
   fi
 }
 
+# OpenAdmin
+reload_openadmin() {
+  echo "$(date): Detected change in $OPENADMIN_DIR"
+  echo "$(date): Running: service admin reload"
+  service admin reload
+  if [ $? -ne 0 ]; then
+    echo "$(date): service admin reload failed"
+  fi
+}
 
+# watcher itself
+reload_watcher() {
+  echo "$(date): Detected change in $WATCHER_DIR"
+  echo "$(date): Running: service watcher restart"
+  service watcher restart
+  if [ $? -ne 0 ]; then
+    echo "$(date): service watcher restart failed"
+  fi
+}
 
 # Check and install inotifywait if necessary
 check_and_install_inotifywait
@@ -79,6 +99,10 @@ while true; do
       reload_dns "$FILE"
     elif [[ "$FILE" == "$SYSTEMD_DIR"* ]]; then
       reload_systemd
+    elif [[ "$FILE" == "$WATCHER_DIR"* ]]; then
+      reload_watcher
+    elif [[ "$FILE" == "$OPENADMIN_DIR"* ]]; then
+      reload_openadmin
     fi
   done
 done
