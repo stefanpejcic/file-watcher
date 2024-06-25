@@ -9,5 +9,5 @@ Auto-reload services when changes are detected in BIND or Nginx configuration fi
 ## Install
 
 ```bash
-git clone https://github.com/stefanpejcic/file-watcher /usr/local/admin/scripts/watcher && bash /usr/local/admin/scripts/watcher/install.sh
+bash <(curl -sSL https://raw.githubusercontent.com/stefanpejcic/file-watcher/main/install.sh)
 ```
