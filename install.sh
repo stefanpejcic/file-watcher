@@ -8,6 +8,10 @@
 #################################################################
 
 mkdir -p /usr/local/admin/scripts/
+
+git clone https://github.com/stefanpejcic/file-watcher /usr/local/admin/scripts/watcher
+
+chmod +x /usr/local/admin/scripts/watcher/watcher.sh
 cp /usr/local/admin/scripts/watcher/watcher.service /etc/systemd/system/watcher.service
 
 systemctl daemon-reload
