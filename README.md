@@ -1,4 +1,4 @@
-# file-watcher
+# 📄 👀 🤙🏼 file-watcher
 Auto-reload services when changes are detected in configuration files
 
 
