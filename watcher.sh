@@ -20,17 +20,39 @@ check_and_install_inotifywait() {
   fi
 }
 
+
+# Extract domain name from file name without .conf suffix
+extract_domain_name() {
+  local filename="$1"
+  local domain_name=$(basename "$filename" .conf)
+  echo "$domain_name"
+}
+
 # Nginx
 reload_nginx() {
+  local file="$1"
+  local event="$2"
+
+
+  echo "$(date): Detected Nginx Configuration Change"
+  
+  if [[ "$event" == "CREATE" ]]; then
+    # Extract domain name from file name (without .conf suffix)
+    local domain_name=$(extract_domain_name "$file")
+    echo "$(date): New domain added: $domain_name - starting SSL generation.."
+    generate_ssl "$domain_name"
+  fi
+
   nginx -t
   if [ $? -eq 0 ]; then
-    echo "$(date): Detected Nginx Configuration Change"
+
     echo "$(date): Executing: nginx -s reload"
     nginx -s reload
   else
     echo "$(date): Nginx configuration test failed"
   fi
 }
+
 
 # Named
 reload_dns() {
@@ -81,25 +103,36 @@ reload_watcher() {
   fi
 }
 
+# opencli ssl-domain <DOMAIN_NAME>
+generate_ssl() {
+  local domain_name="$1"
+  echo "$(date): Generating SSL certificate for domain $domain_name"
+  opencli ssl-domain "$domain_name"
+  if [ $? -eq 0 ]; then
+    echo "$(date): SSL certificate generated successfully for $domain_name"
+  else
+    echo "$(date): Failed to generate SSL certificate for $domain_name"
+  fi
+}
+
+
 # Check and install inotifywait if necessary
 check_and_install_inotifywait
 
 # Main loop
 while true; do
-  echo "Waiting for changes in $NGINX_CONF_DIR or $DNS_ZONES_DIR..."
-  inotifywait --exclude .swp -e create -e modify -e delete -e move "$NGINX_CONF_DIR" "$DNS_ZONES_DIR"
-  
-  CHANGED_FILES=$(inotifywait --exclude .swp -e create -e modify -e delete -e move --format '%w%f' "$NGINX_CONF_DIR" "$DNS_ZONES_DIR")
-
-  for FILE in $CHANGED_FILES; do
-    echo "Change detected in: $FILE"
+  echo "Waiting for changes in $NGINX_CONF_DIR, $DNS_ZONES_DIR, $SYSTEMD_DIR, $OPENADMIN_DIR, or $WATCHER_DIR..."
+  inotifywait --exclude .swp -e create -e modify -e delete -e move \
+              -r "$NGINX_CONF_DIR" "$DNS_ZONES_DIR" "$SYSTEMD_DIR" "$OPENADMIN_DIR" "$WATCHER_DIR" \
+              --format '%e %w%f' |
+  while read -r EVENT FILE; do
+    echo "Change detected: $EVENT in $FILE"
     if [[ "$FILE" == "$NGINX_CONF_DIR"* ]]; then
-      reload_nginx
+      reload_nginx "$FILE" "$EVENT"
     elif [[ "$FILE" == "$DNS_ZONES_DIR"*.zone ]]; then
       reload_dns "$FILE"
     elif [[ "$FILE" == "$SYSTEMD_DIR"* ]]; then
       reload_systemd
-    # openadmin must be before watcher, since watcher is in subdirectory of openadmin
     elif [[ "$FILE" == "$OPENADMIN_DIR"* ]]; then
       reload_openadmin
     elif [[ "$FILE" == "$WATCHER_DIR"* ]]; then
