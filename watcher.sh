@@ -5,6 +5,7 @@ NGINX_CONF_DIR="/etc/nginx/sites-available"
 DNS_ZONES_DIR="/etc/bind/zones"
 SYSTEMD_DIR="/etc/systemd/system"
 OPENADMIN_DIR="/usr/local/admin"
+USERS_DIR="/etc/openpanel/openpanel/core/users" # todo, exclude dot files and watch only for folder, not files in them!
 WATCHER_DIR="/usr/local/admin/scripts/watcher"
 
 # Function to check if inotifywait is installed and install it if necessary
@@ -83,6 +84,17 @@ reload_systemd() {
   fi
 }
 
+
+# phpMyAdmin for OpenPanel users
+reload_phpmyadmin() {
+  echo "$(date): Detected change in $USERS_DIR"
+  echo "$(date): Running: opencli phpmyadmin --enable"
+  opencli phpmyadmin --enable
+  if [ $? -ne 0 ]; then
+    echo "$(date): 'opencli phpmyadmin --enable' failed"
+  fi
+}
+
 # OpenAdmin
 reload_openadmin() {
   echo "$(date): Detected change in $OPENADMIN_DIR"
@@ -121,9 +133,9 @@ check_and_install_inotifywait
 
 # Main loop
 while true; do
-  echo "Waiting for changes in $NGINX_CONF_DIR, $DNS_ZONES_DIR, $SYSTEMD_DIR, $OPENADMIN_DIR, or $WATCHER_DIR..."
+  echo "Waiting for changes in $NGINX_CONF_DIR, $DNS_ZONES_DIR, $SYSTEMD_DIR, $OPENADMIN_DIR, $USERS_DIR, or $WATCHER_DIR..."
   inotifywait --exclude .swp -e create -e modify -e delete -e move \
-              -r "$NGINX_CONF_DIR" "$DNS_ZONES_DIR" "$SYSTEMD_DIR" "$OPENADMIN_DIR" "$WATCHER_DIR" \
+              -r "$NGINX_CONF_DIR" "$DNS_ZONES_DIR" "$SYSTEMD_DIR" "$OPENADMIN_DIR" "$USERS_DIR" "$WATCHER_DIR" \
               --format '%e %w%f' |
   while read -r EVENT FILE; do
     echo "Change detected: $EVENT in $FILE"
@@ -133,6 +145,8 @@ while true; do
       reload_dns "$FILE"
     elif [[ "$FILE" == "$SYSTEMD_DIR"* ]]; then
       reload_systemd
+    elif [[ "$FILE" == "$USERS_DIR"* ]]; then
+      reload_phpmyadmin
     elif [[ "$FILE" == "$OPENADMIN_DIR"* ]]; then
       reload_openadmin
     elif [[ "$FILE" == "$WATCHER_DIR"* ]]; then
