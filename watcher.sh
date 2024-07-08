@@ -131,6 +131,8 @@ generate_ssl() {
 # Check and install inotifywait if necessary
 check_and_install_inotifywait
 
+mkdir -p /etc/bind/zones
+
 # Main loop
 while true; do
   echo "Waiting for changes in $NGINX_CONF_DIR, $DNS_ZONES_DIR, $SYSTEMD_DIR, $OPENADMIN_DIR, $USERS_DIR, or $WATCHER_DIR..."
