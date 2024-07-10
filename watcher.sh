@@ -145,12 +145,13 @@ while true; do
       reload_nginx "$FILE" "$EVENT"
     elif [[ "$FILE" == "$DNS_ZONES_DIR"*.zone ]]; then
       reload_dns "$FILE"
-    elif [[ "$FILE" == "$SYSTEMD_DIR"* ]]; then
-      reload_systemd
+#    elif [[ "$FILE" == "$SYSTEMD_DIR"* ]]; then
+#      reload_systemd
     elif [[ "$FILE" == "$USERS_DIR"* ]]; then
       reload_phpmyadmin
-    elif [[ "$FILE" == "$OPENADMIN_DIR"* ]]; then
-      reload_openadmin
+# temporary disabled for troubleshooting back where admin restart infinitely times - signal 15 on multi-core ubunut24
+#    elif [[ "$FILE" == "$OPENADMIN_DIR"* ]]; then
+#      reload_openadmin
     elif [[ "$FILE" == "$WATCHER_DIR"* ]]; then
       reload_watcher
     fi
