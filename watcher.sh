@@ -138,6 +138,7 @@ while true; do
   echo "Waiting for changes in $NGINX_CONF_DIR, $DNS_ZONES_DIR, $SYSTEMD_DIR, $OPENADMIN_DIR, $USERS_DIR, or $WATCHER_DIR..."
   inotifywait --exclude .swp -e create -e modify -e delete -e move \
               -r "$NGINX_CONF_DIR" "$DNS_ZONES_DIR" "$SYSTEMD_DIR" "$OPENADMIN_DIR" "$USERS_DIR" "$WATCHER_DIR" \
+              --exclude "$USERS_DIR/.*/.*" 
               --format '%e %w%f' |
   while read -r EVENT FILE; do
     echo "Change detected: $EVENT in $FILE"
@@ -147,7 +148,7 @@ while true; do
       reload_dns "$FILE"
 #    elif [[ "$FILE" == "$SYSTEMD_DIR"* ]]; then
 #      reload_systemd
-    elif [[ "$FILE" == "$USERS_DIR"* ]]; then
+    elif [[ "$FILE" == "$USERS_DIR"* && ! "$FILE" == "$USERS_DIR"*/** ]]; then
       reload_phpmyadmin
 # temporary disabled for troubleshooting back where admin restart infinitely times - signal 15 on multi-core ubunut24
 #    elif [[ "$FILE" == "$OPENADMIN_DIR"* ]]; then
