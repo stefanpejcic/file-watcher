@@ -139,7 +139,7 @@ while true; do
   inotifywait --exclude .swp -e create -e modify -e delete -e move \
               -r "$NGINX_CONF_DIR" "$DNS_ZONES_DIR" "$SYSTEMD_DIR" "$OPENADMIN_DIR" "$USERS_DIR" "$WATCHER_DIR" \
               --exclude "$USERS_DIR/.*/.*" 
-              --format '%e %w%f' |
+              ######### --format '%e %w%f' |
   while read -r EVENT FILE; do
     echo "Change detected: $EVENT in $FILE"
     if [[ "$FILE" == "$NGINX_CONF_DIR"* ]]; then
